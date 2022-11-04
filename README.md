@@ -60,3 +60,5 @@ carpeta
 Probablemente más adelante quite esta sección de comandos, ya que es muy genérico y a veces se necesitan parámetros adicionales, además de que en youtube explican mil veces mejor.
 
 Por otro lado, hacer es mejor que ver. Practicar los comandos y ver que desastre provocan ayudan a aprender más rápido (pueden borrar el proyecto y clonarlo de nuevo las veces que quieran).
+
+Aquí estuvo Giuseppe :O

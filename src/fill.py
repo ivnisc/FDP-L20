@@ -1,16 +1,15 @@
 from random import choice, randint
 import pandas as pd
 
-df = pd.DataFrame(columns=["perfil", "color", "largo", "ubicación"])
+df = pd.DataFrame(columns=["Perfil", "Color", "Largo", "Ubicación", "Usuario"])
 
-def insertar(profile, kolor, largue, location):
-    df.loc[len(df)] = [profile, kolor, largue, location]
+def insertar(profile, kolor, largue, location): 
+    # El insertar no recibe el no-usuario como argumento, se inserta por default     ;
+    df.loc[len(df)] = [profile, kolor, largue, location, "uwu"]
 
 for linea in range(1000): # n elementos
-    insertar(choice(["marco - corredera", "marco - ventana fija",
-                 "hoja - ventana fija", "hoja - corredera", 
-                 "ventana - oscilante", "ventana batiente"]), 
-     choice(["blanco", "caoba", "grafito", "nogal", "roble claro", "roble oscuro",]),
+    insertar(choice(["CORREDERA", "FIJA", "OSCILANTE", "BATIENTE"]), 
+     choice(["BLANCO", "CAOBA", "GRAFITO", "NOGAL", "ROBLE CLARO", "ROBLE OSCURO",]),
      float(randint(1000, 4000)/10), 
      choice((["A", "B", "C", "D", "E"])) + str(randint(1, 10)))
 

@@ -1,34 +1,35 @@
 import pandas as pd
+from random import randint
 
 def nuevoElemento(profile, kolor, largue, location):
     df = pd.read_csv("inventario.csv")
-    df.loc[len(df)] = [profile, kolor, largue, location]
+    df.loc[len(df)] = [profile, kolor, largue, location, "uwu"]
     df.to_csv("inventario.csv", index=False)
 
 def borrarElemento(profile, kolor, largue, location):
     df = pd.read_csv("inventario.csv")
-    df = df.drop(df[(df.perfil == profile) & (df.color == kolor) & (df.largo == largue) & (df.ubicación == location)].index)
+    df = df.drop(df[(df.Perfil == profile) & (df.Color == kolor) & (df.Largo == float(largue)) & (df.Ubicación == location)].index)
     df.to_csv("inventario.csv", index=False)
 
 def filtrarElementos(profile, kolor, largue, location):
     df = pd.read_csv("inventario.csv")
     if profile != "" or None:
-        df = df[df.perfil == profile]
+        df = df[df.Perfil == profile]
     if kolor != "" or None:
-        df = df[df.color == kolor]
+        df = df[df.Color == kolor]
     if largue != "" or None:
         if "-" in largue:
             largue = largue.split("-")
-            df = df[(df.largo >= float(largue[0])) & (df.largo <= float(largue[1]))]
+            df = df[(df.Largo >= float(largue[0])) & (df.Largo <= float(largue[1]))]
         else:
-            df = df[df.largo == float(largue)]
+            df = df[df.Largo == float(largue)]
     if location != "" or None:
-        df = df[df.ubicación == location]
-
+        df = df[df.Ubicación == location]
+    # En las siguientes dos líneas se quitan los elementos que ya fueron usados (con usuario)
+    # luego se remueve la columna usuario ya que no se debe visualizar en el filtro     ;
+    df = df.drop(df[df.Usuario != "uwu"].index)
+    df = df.drop(columns= "Usuario")  
     if df.empty:
         return "No se encontraron elementos con esas características."
     else:
         return df
-
-#nuevoElemento("marco - corredera", "blanco", "7.0", "A2")
-#print(filtrarElementos("marco - corredera", "caoba", "200-300", "E10"))

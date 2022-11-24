@@ -6,9 +6,9 @@ def nuevoElemento(profile, kolor, largue, location):
     df.loc[len(df)] = [profile, kolor, largue, location, "uwu"]
     df.to_csv("inventario.csv", index=False)
 
-def borrarElemento(profile, kolor, largue, location):
+def deshacer():
     df = pd.read_csv("inventario.csv")
-    df = df.drop(df[(df.Perfil == profile) & (df.Color == kolor) & (df.Largo == float(largue)) & (df.Ubicación == location)].index)
+    df = df[:-1]
     df.to_csv("inventario.csv", index=False)
 
 def filtrarElementos(profile, kolor, largue, location):
@@ -33,3 +33,6 @@ def filtrarElementos(profile, kolor, largue, location):
         return "No se encontraron elementos con esas características."
     else:
         return df
+    
+
+deshacer() 

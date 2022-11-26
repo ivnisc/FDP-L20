@@ -6,7 +6,6 @@ import pandas as pd
 #funcion que recibe el nombre, contraseña e ingresa la cuenta al registro
 def registrar_usuario(nombre, contraseña):
     nombre = nombre.capitalize()
-    contraseña = contraseña.capitalize()
     #sys.path[0] es la direccion del script, os.path.join une la direccion con el nombre del archivo
     #se lee el excel de la direccion correspondiente y se convierte a dataframe
     registro = pd.read_excel(os.path.join(sys.path[0], "registro.xlsx"))
@@ -47,7 +46,6 @@ def eliminar_cuenta(nombre):
 #funcion que recibe nombre y contraseña, cambia la contraseña de un usuario
 def cambiar_contraseña(nombre, contraseña):
     nombre = nombre.capitalize()
-    contraseña = contraseña.capitalize()
     registro = pd.read_excel(os.path.join(sys.path[0], "registro.xlsx"))
     i = 0
     escritura = True
@@ -62,7 +60,6 @@ def cambiar_contraseña(nombre, contraseña):
 #funcion que comprueba que la cuenta ingresada exista
 def inicio_sesion(nombre, contraseña):
     nombre = nombre.capitalize()
-    contraseña = contraseña.capitalize()
     registro = pd.read_excel(os.path.join(sys.path[0], "registro.xlsx"))
     i = 0
     escritura = True

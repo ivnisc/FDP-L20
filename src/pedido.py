@@ -5,59 +5,42 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 """
-La función leerPDF retorna un formato trabajable de las ventanas del pedido
-del cliente. Comienza extrayendo la información en texto plano, para luego
-darle un formato conveniente. La lógica que se utilizó fue la siguiente: 
+La función leerPDF utiliza la librería PyPDF2 para leer el archivo PDF.
+Esta lectura se realiza página por página (si es que tiene más de una), 
+y luego línea por línea. El archivo contiene mucho texto que no es de interés,
+por lo que se utiliza una expresión regular simple para encontrar las 
+líneas que contienen el perfil de la ventana, el color, el largo y el ancho.
 
-Cada ventana tiene 4 lados, con ancho y largo. Primero conseguimos listar
-cada una de ellas, tomando la cantidad, perfil, color y largo X ancho,
-es decir, deshacernos del contenido del pdf que no sirve y obtener la tabla
-de artículos comprados.
+Estas líneas se guardan en una lista llamada lista_elementos.
+Se recorre dicha lista para corregir algunos errores de formato en los 
+que la librería puede fallar al detectar los caracteres.
 
-Si el cliente compró una misma ventana (con las mismas dimensiones) en
-varias cantidades, se clona el mismo elemento por esa cantidad, para así
-deshacernos de la columna cantidad. Ejemplo:
+Por ejemplo, en el caso de que el largo o el ancho de la ventana esté compuesto
+de dos dígitos, la librería puede leerlo como "2 35.5" en lugar de "235.5".
+Esto se soluciona con un regex que elimina el espacio entre dos dígitos.
+Luego se recorre la lista para eliminar el precio unitario y el precio 
+acumulado, cortando el string.
 
-Cantidad 5 | ventana fija | color caoba | largo = 200.2 x ancho = 100.9
-resulta en hacer 5 filas de ventana fija | color caoba | ... .
-
-El siguiente paso es crear por cada una de estas, dos filas en un nuevo
-dataframe: Una fila con la longitud del largo de la ventana, y la 2da fila,
-con el ancho como largo del PVC. Al fin y al cabo, al desarmar una ventana,
-tods los lados tienen cierta longitud.
-
-Entonces para una ventana como el ejemplo anterior, el dataframe es algo así:
-
-FIJA, CAOBA, 200.2
-FIJA, CAOBA, 100.9
-FIJA, CAOBA, 200.2
-FIJA, CAOBA, 100.9
-
-Para el caso en que la boleta pdf dice que son n cantidades de esta, las 4 filas
-se repetirían n veces. En conclusión, cada ventana de manera individual significa
-4 filas en el dataframe final. Un pdf con un pedido de 10 ventanas, se traduce en
-un dataframe de 40 filas, de las cuales para cada una debemos averiguar si tienen
-un residuo disponible en el inventario que podamos reutilizar. 
+El resultado final es una lista cuyos elementos son idénticos a la descripción
+de las ventanas que se muestran en el archivo pdf.
 """
 
 def leerPDF(path):
     with open(path, 'rb') as f:
         pdf = PyPDF2.PdfFileReader(f)
         lista_elementos = []
-        for page in pdf.pages:
-            lines = page.extractText().splitlines()
-            for i in range(len(lines)):
+        for pagina in pdf.pages:
+            linea = pagina.extractText().splitlines()
+            for i in range(len(linea)):
                 # Este regex es análogo a un simple "perfil" in lines[i] or ...
-                if re.search(r"FIJA|BATIENTE|CORREDERA|OSCILANTE", lines[i]):
-                    lista_elementos.append(lines[i])
-
-    auxlist = []
+                if re.search(r"FIJA|BATIENTE|CORREDERA|OSCILANTE", linea[i]):
+                    lista_elementos.append(linea[i])
 
     for i in range(len(lista_elementos)):
-        # Esto quita un espacio si este se encuentra antes o después de un punto.
+        # regex que quita un espacio si este se encuentra antes o después de un punto.
         lista_elementos[i] = re.sub(r"\.\s|\s\.", ".", lista_elementos[i])
         
-        # Quita un espacio si este está entre dos dígitos,
+        # regex que quita un espacio si este está entre dos dígitos,
         # para casos en que una medida estaba como el siguiente ejemplo.
         # 2 35.5  => 235.5      ;
         lista_elementos[i] = re.sub(r"(\d)\s(\d)", r"\1\2", lista_elementos[i])
@@ -68,6 +51,28 @@ def leerPDF(path):
         # por lo no es de importancia que el regex anterior junte el ancho con el precio unitario.
         lista_elementos[i] = lista_elementos[i][:lista_elementos[i].find("X")+7]
 
+    return lista_elementos
+
+"""
+La función dataFramePedido usa la lista de elementos que devuelve la función leerPDF.
+Lo que hace es "descomponer" cada elemento de la lista según cantidad y medida.
+
+Por ejemplo, si un elemento de la lista tiene cantidad 4, queremos que el dataframe
+tenga 4 filas con la misma descripción de dicho elemento.
+
+Luego de esto, queremos dividir nuevamente cada uno de estos, descomponiendo 
+cada uno en una copia con el largo y otra con el ancho.
+Pero como una ventana tiene 4 lados, corresponde crear 2 copias del elemento 
+con el largo y dos copias del elemento con el ancho.
+Entonces, para un solo elemento único, se crean 4 copias, 1 por cada lado de la ventana.
+
+El return de esta función es un dataframe con los elementos descompuestos, listos para
+buscar candidatos en el inventario y reutilizarlos en la fabricación de la ventana.
+"""
+
+def dataFramePedido(lista_elementos):   
+    auxlist = []
+    for i in range(len(lista_elementos)):
         # En auxlist insertamos el elemento tantas veces como la cantidad que lo acompaña indique.
         for j in range(int(lista_elementos[i][0])):
             auxlist.append(lista_elementos[i][2:])
@@ -75,9 +80,14 @@ def leerPDF(path):
     # Iteramos sobre la lista auxiliar.
     # Cada línea tiene un largo y ancho separado por " X ".
     # Entonces desde auxlist, insertamos en auxlist2 todo el elemento excepto el ancho.
-    # Luego hacemos lo mismo pero excepto el largo.
+    # Luego hacemos lo mismo pero excepto el largo.  
     auxlist2 = []
     for j in range(len(auxlist)):
+        auxlist2.append(auxlist[j][:auxlist[j].find("X")-1])
+        auxlist2.append(auxlist[j][:auxlist[j].find("X")-6] + 
+        auxlist[j][auxlist[j].find("X")+2::])
+        # Realizamos este proceso dos veces cada una, para obtener 4 copias del elemento.
+        # Una por cada lado de la ventana.
         auxlist2.append(auxlist[j][:auxlist[j].find("X")-1])
         auxlist2.append(auxlist[j][:auxlist[j].find("X")-6] + 
         auxlist[j][auxlist[j].find("X")+2::])
@@ -113,15 +123,12 @@ residuos demasiado largos que podrían servir para ventanas más grandes.
 
 El residuo elegido se marca en el inventario con el nombre del usuario que está 
 utilizando el software en ese momento (el que tiene sesión iniciada).
-
 De esta manera dicho residuo deja de estar disponible ya que fue REutilizado
 para fabricar una nueva ventana sin necesitar una viga de PVC nueva, reduciendo
 la conservación de desechos industriales, Yei :D
-
 """
-        
-def match(dfpdf, dfinv, user):
 
+def match(dfpdf, dfinv, user):
     # Se usarán dos dataframes con columnas del inventario.
     dfcand = pd.DataFrame(columns=dfinv.columns)
     dfmatch = pd.DataFrame(columns=dfinv.columns)
@@ -161,7 +168,8 @@ def match(dfpdf, dfinv, user):
             for k in range(len(dfinv)):
                 if (dfinv.iloc[k, 0] == dfcand.iloc[0, 0] and 
                     dfinv.iloc[k, 1] == dfcand.iloc[0, 1] and 
-                    dfinv.iloc[k, 2] == dfcand.iloc[0, 2]):
+                    dfinv.iloc[k, 2] == dfcand.iloc[0, 2] and
+                    dfinv.iloc[k, 3] == dfcand.iloc[0, 3]):
                     dfinv.iloc[k, 4] = user
                     break
 
@@ -182,14 +190,55 @@ def match(dfpdf, dfinv, user):
     # Retornamos el match, sin la columna usuario ya que no se necesita.
     
     return dfmatch.iloc[:, 0:4]
-    
 
-# Líneas de prueba para la consola. El argumento "XD" debería tener una función estilo
-# get.User() el cual obtiene de la interfaz, el String del usuario que inició sesión.
+""" 
+La función numeroPedido es similar a la leerPDF.
+Se utiliza la librería PyPDF2 para leer el pdf y extraer el número de pedido.
+Se recorre cada párrafo del pdf, buscando la frase "N.º DE BOLETA".
+Una vez se encuentra, se retorna los últimos 3 caracteres del párrafo, que
+corresponden al número del pedido.
+"""
 
-print(leerPDF("/Users/u/Desktop/lab/project/docs/meruane.pdf"))
-print( "-----------------------------------------")
-print(match(leerPDF("/Users/u/Desktop/lab/project/docs/meruane.pdf"), pd.read_csv("inventario.csv"), "XD"))
+def numeroPedido(path):
+    with open(path, 'rb') as f:
+        pdf = PyPDF2.PdfFileReader(f)
+        linea = pdf.pages[0].extractText().splitlines()
+        for i in range(len(linea)):
+            if "N.º DE BOLETA" in linea[i]:
+                return linea[i][-4:-1]
+            
+"""
+La función modificar color es llamada como un mensaje de confirmación al usuario.
+Se le pregunta si desea modificar el color de alguna ventana, y si es así, se le pide
+que ingrese el nuevo color, junto con el número de la ventana de la lista.
+Se retorna la lista actualizada con el color modificado.
+"""
+            
+def modificarColor(funcionleerPDF, kolor, index):
+    lista_elementos = funcionleerPDF
+    # el elemento de la lista es un string, así que lo convertimos a lista
+    lista_elementos[index-1] = lista_elementos[index-1].split()
+    # modificamos el color
+    lista_elementos[index-1][2] = kolor
+    # convertimos la lista a string
+    lista_elementos[index-1] = " ".join(lista_elementos[index-1])
+    return lista_elementos
 
+# tests 
 
+#print(dataFramePedido(leerPDF("/Users/u/Desktop/lab/project/docs/meruane.pdf")))
+#print( "-----------------------------------------")
+#print(match(dataFramePedido(leerPDF("/Users/u/Desktop/lab/project/docs/meruane.pdf")), pd.read_csv("inventario.csv"), "XD"))
 
+#print(numeroPedido("/Users/u/Desktop/lab/project/docs/arturovidal.pdf"))
+
+#print(leerPDF("/Users/u/Desktop/lab/project/docs/anatorroja.pdf"))
+
+#for i in leerPDF("/Users/u/Desktop/lab/project/docs/anatorroja.pdf"):
+#    print(i)
+
+#print("-------------------------------------------------")
+#lista = modificarColor(leerPDF("/Users/u/Desktop/lab/project/docs/anatorroja.pdf"), "ASD", 1)
+
+#for i in lista:
+#    print(i)

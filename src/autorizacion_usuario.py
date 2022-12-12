@@ -89,7 +89,7 @@ def cambiar_contraseña(nombre, contraseña):
     escritura = True
     while i < 10 and escritura == True:
         if str(registro.at[i, "nombre"]) == nombre:
-            registro.at[i, "contraseña"] = contraseña
+            registro.at[i, "contraseña"] = str(contraseña)
             #print("Contraseña cambiada")
             escritura = False
         i += 1

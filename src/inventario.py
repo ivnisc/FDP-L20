@@ -1,18 +1,22 @@
 import pandas as pd
 from random import randint
+from path import ruta_de_
 
 def nuevoElemento(profile, kolor, largue, location):
-    df = pd.read_csv("inventario.csv")
-    df.loc[len(df)] = [profile, kolor, largue, location, "uwu"]
-    df.to_csv("inventario.csv", index=False)
+    df = pd.read_csv(ruta_de_("inventario.csv"))
+    if profile != "" or kolor != "" or largue != "" or location != "":
+        return "No puede haber campos vacíos"
+    else: 
+        df.loc[len(df)] = [profile, kolor, largue, location, "uwu"]
+        df.to_csv(ruta_de_("inventario.csv"), index=False)
 
 def deshacer():
-    df = pd.read_csv("inventario.csv")
+    df = pd.read_csv(ruta_de_("inventario.csv"))
     df = df[:-1]
-    df.to_csv("inventario.csv", index=False)
+    df.to_csv(ruta_de_("inventario.csv"), index=False)
 
 def filtrarElementos(profile, kolor, largue, location):
-    df = pd.read_csv("inventario.csv")
+    df = pd.read_csv(ruta_de_("inventario.csv"))
     if profile != "" or None:
         df = df[df.Perfil == profile]
     if kolor != "" or None:
@@ -33,6 +37,3 @@ def filtrarElementos(profile, kolor, largue, location):
         return "No se encontraron elementos con esas características."
     else:
         return df
-    
-
-deshacer() 

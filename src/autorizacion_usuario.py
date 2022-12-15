@@ -1,11 +1,7 @@
 import os
 import sys
 import pandas as pd
-
-def ruta_csv():
-    docs_path = os.path.join(os.path.dirname(sys.path[0]), "docs")
-    csv_path = os.path.join(docs_path, "registro.csv")
-    return csv_path
+from path import ruta_de_
 
 def crear_registro():
     datos = [[1,"", ""], [2,"", ""], [3,"", ""], [4,"", ""], [5,"", ""],
@@ -15,7 +11,7 @@ def crear_registro():
     registro = pd.DataFrame(datos, columns=columnas).astype(tipos_de_datos)
     #registro.to_csv("registro.csv", index=False)
     #registro.to_csv(os.path.join(sys.path[0], "registro.csv"), index = False)
-    registro.to_csv(ruta_csv(), index=False)
+    registro.to_csv(ruta_de_("registro.csv"), index=False)
 
 
 #funcion que recibe el nombre, contraseña e ingresa la cuenta al registro
@@ -25,13 +21,14 @@ def registrar_usuario(nombre, contraseña):
     #se lee el excel de la direccion correspondiente y se convierte a dataframe
 
     #si el archivo csv no existe, cuya ruta es ruta_csv(), se crea
-    if not os.path.exists(ruta_csv()):
+    if not os.path.exists(ruta_de_("registro.csv")):
         crear_registro()
 
+    tipos_de_datos = {"id": "int", "nombre": "str", "contraseña": "str"}
 
     #registro = pd.read_csv("registro.csv")
     #registro = pd.read_csv(os.path.join(sys.path[0], "registro.csv"), sep=",", encoding="utf-8")
-    registro = pd.read_csv(ruta_csv(), sep=",", encoding="utf-8")
+    registro = pd.read_csv(ruta_de_("registro.csv"), sep=",", encoding="utf-8", dtype=tipos_de_datos)
 
     #el ciclo va a comprobar en el dataframe que hayan espacios vacios
     #un espacio vacio en excel se representa como nan, hay que pasarlo a string para hacer comparativas
@@ -53,7 +50,7 @@ def registrar_usuario(nombre, contraseña):
     #se transforma el dataframe a csv
     #registro.to_csv("registro.csv", index=False)
     #registro.to_csv(os.path.join(sys.path[0], "registro.csv"), index = False)
-    registro.to_csv(ruta_csv(), index=False)
+    registro.to_csv(ruta_de_("registro.csv"), index=False)
 
 #funcion que recibe el nombre de una cuenta y la elimina del registro
 def eliminar_cuenta(nombre):
@@ -61,7 +58,7 @@ def eliminar_cuenta(nombre):
 
     #registro = pd.read_csv("registro.csv")
     #registro = pd.read_csv(os.path.join(sys.path[0], "registro.csv"), sep=",", encoding="utf-8")
-    registro = pd.read_csv(ruta_csv(), sep=",", encoding="utf-8")
+    registro = pd.read_csv(ruta_de_("registro.csv"), sep=",", encoding="utf-8")
 
     i = 0
     escritura = True
@@ -75,7 +72,7 @@ def eliminar_cuenta(nombre):
     
     #registro.to_csv("registro.csv", index=False)
     #registro.to_csv(os.path.join(sys.path[0], "registro.csv"), index = False)
-    registro.to_csv(ruta_csv(), index=False)
+    registro.to_csv(ruta_de_("registro.csv"), index=False)
 
 #funcion que recibe nombre y contraseña, cambia la contraseña de un usuario
 def cambiar_contraseña(nombre, contraseña):
@@ -83,7 +80,7 @@ def cambiar_contraseña(nombre, contraseña):
 
     #registro = pd.read_csv("registro.csv")
     #registro = pd.read_csv(os.path.join(sys.path[0], "registro.csv"), sep=",", encoding="utf-8")
-    registro = pd.read_csv(ruta_csv(), sep=",", encoding="utf-8")
+    registro = pd.read_csv(ruta_de_("registro.csv"), sep=",", encoding="utf-8")
 
     i = 0
     escritura = True
@@ -96,7 +93,7 @@ def cambiar_contraseña(nombre, contraseña):
             
     #registro.to_csv("registro.csv", index=False)
     #registro.to_csv(os.path.join(sys.path[0], "registro.csv"), index = False)
-    registro.to_csv(ruta_csv(), index=False)
+    registro.to_csv(ruta_de_("registro.csv"), index=False)
 
 #funcion que comprueba que la cuenta ingresada exista
 def inicio_sesion(nombre, contraseña):
@@ -106,7 +103,7 @@ def inicio_sesion(nombre, contraseña):
 
     #registro = pd.read_csv("registro.csv")
     #registro = pd.read_csv(os.path.join(sys.path[0], "registro.csv"), sep=",", encoding="utf-8")
-    registro = pd.read_csv(ruta_csv(), sep=",", encoding="utf-8")
+    registro = pd.read_csv(ruta_de_("registro.csv"), sep=",", encoding="utf-8")
 
     i = 0
     escritura = True
@@ -117,4 +114,3 @@ def inicio_sesion(nombre, contraseña):
         i += 1
     if i == 10 and escritura == True:
         print("sesion no iniciada")
-

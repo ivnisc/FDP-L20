@@ -4,9 +4,10 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from path import ruta_de_
 
 #archivo
-df = pd.read_csv("inventario.csv")
+df = pd.read_csv(ruta_de_("inventario.csv"))
 
 """
 El histograma esta hecho principalmente para variables solo numericas,
@@ -68,8 +69,6 @@ def grafico_multiple (colum1,colum2):
     else:
         return "no se pudo realizar el grafico"
 
-#segunda funcion
-
 """
 Esta función filtra a los usuarios por su nombre y entrega un dataframe con
 las acciones que ha realizado 
@@ -80,6 +79,3 @@ def acciones_usuarios (nombre):
         return "no hay coincidencias"
     else:
         return accion
-
-        
-print(acciones_usuarios("XD"))

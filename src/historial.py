@@ -1,23 +1,26 @@
 import datetime
 from pedido import numeroPedido
+import os
+from path import ruta_de_
 
 def guardarFecho(path):
     fecho = datetime.datetime.now()
-    fecho = fecho.strftime("%H:%M:%S %d/%m/%Y")    
-    with open("../docs/historial.txt", 'a') as historial:
-        historial.write(fecho + ' ' + numeroPedido(path) + '\n')
+    fecho = fecho.strftime("%H:%M:%S %d/%m/%Y")  
+
+    if os.path.exists(ruta_de_("historial.txt")):
+        with open(ruta_de_("historial.txt"), 'a') as historial:
+            historial.write(fecho + ' ' + numeroPedido(path) + '\n')
+    else:
+        with open(ruta_de_("historial.txt"), 'w') as historial:
+            historial.write(fecho + ' ' + numeroPedido(path) + '\n')  
+
 
 def leerHistorial():
-    with open("../docs/historial.txt", 'r') as historial:
+    with open(ruta_de_("historial.txt"), 'r') as historial:
         for linea in historial:
             print(linea, end='')
     
-# test                        
-#path = "/Users/u/Desktop/lab/project/docs/zolezzi.pdf"
+# tests                       
+#path = colocar ruta absoluta de algun archivo aquí
 #guardarFecho(path)
 #leerHistorial()
-
-# considerar
-# ruta del archivo historial.txt en windows es distinta a la de mac.
-# ruta relativa en windows es: "..\\docs\\historial.txt" creo.
-

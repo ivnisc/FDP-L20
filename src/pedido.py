@@ -3,6 +3,7 @@ import re
 import pandas as pd
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
+from path import ruta_de_
 
 """
 La función leerPDF utiliza la librería PyPDF2 para leer el archivo PDF.
@@ -128,8 +129,9 @@ para fabricar una nueva ventana sin necesitar una viga de PVC nueva, reduciendo
 la conservación de desechos industriales, Yei :D
 """
 
-def match(dfpdf, dfinv, user):
+def match(dfpdf, user):
     # Se usarán dos dataframes con columnas del inventario.
+    dfinv = pd.read_csv(ruta_de_("inventario.csv"))
     dfcand = pd.DataFrame(columns=dfinv.columns)
     dfmatch = pd.DataFrame(columns=dfinv.columns)
     # Creamos un índice al dfinv
@@ -186,7 +188,7 @@ def match(dfpdf, dfinv, user):
         dfcand = dfcand.iloc[0:0]
 
     # Guardamos las actualizaciones de usuario realizadas en el dfinv
-    dfinv.to_csv("inventario.csv", index=False)
+    dfinv.to_csv(ruta_de_("inventario.csv"), index=False)
     # Retornamos el match, sin la columna usuario ya que no se necesita.
     
     return dfmatch.iloc[:, 0:4]
@@ -206,14 +208,14 @@ def numeroPedido(path):
         for i in range(len(linea)):
             if "N.º DE BOLETA" in linea[i]:
                 return linea[i][-4:-1]
-            
+
 """
 La función modificar color es llamada como un mensaje de confirmación al usuario.
 Se le pregunta si desea modificar el color de alguna ventana, y si es así, se le pide
 que ingrese el nuevo color, junto con el número de la ventana de la lista.
 Se retorna la lista actualizada con el color modificado.
 """
-            
+      
 def modificarColor(funcionleerPDF, kolor, index):
     lista_elementos = funcionleerPDF
     # el elemento de la lista es un string, así que lo convertimos a lista
@@ -223,22 +225,3 @@ def modificarColor(funcionleerPDF, kolor, index):
     # convertimos la lista a string
     lista_elementos[index-1] = " ".join(lista_elementos[index-1])
     return lista_elementos
-
-# tests 
-
-#print(dataFramePedido(leerPDF("/Users/u/Desktop/lab/project/docs/meruane.pdf")))
-#print( "-----------------------------------------")
-#print(match(dataFramePedido(leerPDF("/Users/u/Desktop/lab/project/docs/meruane.pdf")), pd.read_csv("inventario.csv"), "XD"))
-
-#print(numeroPedido("/Users/u/Desktop/lab/project/docs/arturovidal.pdf"))
-
-#print(leerPDF("/Users/u/Desktop/lab/project/docs/anatorroja.pdf"))
-
-#for i in leerPDF("/Users/u/Desktop/lab/project/docs/anatorroja.pdf"):
-#    print(i)
-
-#print("-------------------------------------------------")
-#lista = modificarColor(leerPDF("/Users/u/Desktop/lab/project/docs/anatorroja.pdf"), "ASD", 1)
-
-#for i in lista:
-#    print(i)
